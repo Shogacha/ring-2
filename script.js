@@ -55,7 +55,7 @@ async function init() {
 loader.load('ring.glb', (gltf) => {
   console.log("✅ Кольцо загружено");
   ring = gltf.scene;
-  ring.scale.set(0.2, 0.2, 0.2);
+  ring.scale.set(1, 1, 1);
 
   // ВРЕМЕННО: установка по центру экрана
   ring.position.set(0, 0, -0.5);
@@ -76,8 +76,16 @@ function onResults(results) {
     console.log("Рука не найдена"); // Проверяй, появляется ли это
   }
 }
+const testBox = new THREE.Mesh(
+  new THREE.BoxGeometry(0.1, 0.1, 0.1),
+  new THREE.MeshNormalMaterial()
+);
+testBox.position.z = -0.5;
+scene.add(testBox);
 
 function animate() {
+  alert("Модель загружена");
+
   requestAnimationFrame(animate);
 
   if (ring) {
