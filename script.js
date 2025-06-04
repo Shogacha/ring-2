@@ -54,7 +54,8 @@ async function init() {
   const loader = new GLTFLoader();
   loader.load('ring.glb', (gltf) => {
     ring = gltf.scene;
-    ring.scale.set(0.05, 0.05, 0.05);
+    ring.scale.set(0.2, 0.2, 0.2);
+    ring.position.set(0, 0, -0.5); // В центр экрана
     scene.add(ring);
   }, undefined, (error) => {
     console.error('Ошибка загрузки кольца:', error);
@@ -66,9 +67,10 @@ async function init() {
 function onResults(results) {
   if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
     handLandmarks = results.multiHandLandmarks[0];
-    // console.log("Координаты руки:", handLandmarks);
+    console.log("Рука найдена", handLandmarks); // Должно выводиться!
   } else {
     handLandmarks = null;
+    console.log("Рука не найдена"); // Проверяй, появляется ли это
   }
 }
 
