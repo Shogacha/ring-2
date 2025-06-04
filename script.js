@@ -52,14 +52,17 @@ async function init() {
   scene.add(light);
 
   const loader = new GLTFLoader();
-  loader.load('ring.glb', (gltf) => {
-    ring = gltf.scene;
-    ring.scale.set(0.2, 0.2, 0.2);
-    ring.position.set(0, 0, -0.5); // В центр экрана
-    scene.add(ring);
-  }, undefined, (error) => {
-    console.error('Ошибка загрузки кольца:', error);
-  });
+loader.load('ring.glb', (gltf) => {
+  console.log("✅ Кольцо загружено");
+  ring = gltf.scene;
+  ring.scale.set(0.2, 0.2, 0.2);
+
+  // ВРЕМЕННО: установка по центру экрана
+  ring.position.set(0, 0, -0.5);
+
+  scene.add(ring);
+});
+
 
   animate();
 }
@@ -77,17 +80,18 @@ function onResults(results) {
 function animate() {
   requestAnimationFrame(animate);
 
-  if (ring && handLandmarks) {
-    const knuckle = handLandmarks[13]; // Средний палец, первая фаланга
+  if (ring) {
+    // временно отключаем трекинг
+    // if (handLandmarks) {
+    //   const knuckle = handLandmarks[13];
+    //   const x = (knuckle.x - 0.5) * 2;
+    //   const y = -(knuckle.y - 0.5) * 2;
+    //   ring.position.set(x, y, -0.5);
+    // }
 
-    const x = (knuckle.x - 0.5) * camera.aspect * 2;
-    const y = -(knuckle.y - 0.5) * 2;
-    const z = -0.5 + knuckle.z * 0.5; // Учитываем глубину
-
-    ring.position.set(x, y, z);
-    ring.rotation.x = Math.PI / 2;
     ring.rotation.y += 0.01;
   }
 
   renderer.render(scene, camera);
 }
+
