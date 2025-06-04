@@ -2,20 +2,34 @@ import * as THREE from './libs/three.module.js';
 import { GLTFLoader } from './libs/GLTFLoader.js';
 
 let camera, scene, renderer, ring;
-let video, model, handLandmarks;
+let video, handLandmarks;
 
 init();
 
-
 async function init() {
-  // Камера
   video = document.getElementById('video');
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  video.srcObject = stream;
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { exact: "environment" } }
+    });
+    video.srcObject = stream;
+  } catch (err) {
+    const fallbackStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" }
+    });
+    video.srcObject = fallbackStream;
+    video.style.transform = "scaleX(-1)";
+  }
 
   // MediaPipe
   const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
-  hands.setOptions({ maxNumHands: 1, modelComplexity: 1 });
+  hands.setOptions({
+    maxNumHands: 1,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.7,
+    minTrackingConfidence: 0.7
+  });
   hands.onResults(onResults);
 
   const cameraMediapipe = new Camera(video, {
@@ -37,19 +51,24 @@ async function init() {
   const light = new THREE.HemisphereLight(0xffffff, 0x444444);
   scene.add(light);
 
-  // Загрузка кольца
   const loader = new GLTFLoader();
   loader.load('ring.glb', (gltf) => {
     ring = gltf.scene;
-    ring.scale.set(0.03, 0.03, 0.03);
+    ring.scale.set(0.05, 0.05, 0.05);
     scene.add(ring);
+  }, undefined, (error) => {
+    console.error('Ошибка загрузки кольца:', error);
   });
+
   animate();
 }
 
 function onResults(results) {
   if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
     handLandmarks = results.multiHandLandmarks[0];
+    // console.log("Координаты руки:", handLandmarks);
+  } else {
+    handLandmarks = null;
   }
 }
 
@@ -58,9 +77,13 @@ function animate() {
 
   if (ring && handLandmarks) {
     const knuckle = handLandmarks[13]; // Средний палец, первая фаланга
-    const x = (knuckle.x - 0.5) * 2;
+
+    const x = (knuckle.x - 0.5) * camera.aspect * 2;
     const y = -(knuckle.y - 0.5) * 2;
-    ring.position.set(x, y, -0.5);
+    const z = -0.5 + knuckle.z * 0.5; // Учитываем глубину
+
+    ring.position.set(x, y, z);
+    ring.rotation.x = Math.PI / 2;
     ring.rotation.y += 0.01;
   }
 
